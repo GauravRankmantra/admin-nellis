@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
-const apiUrl = import.meta.env.API_URL;
+const apiUrl = import.meta.env.VITE_API_URL;
+console.log("api url", apiUrl); // This should now log your URL
 
 const Dealerships = () => {
   const [dealerships, setDealerships] = useState([]);
