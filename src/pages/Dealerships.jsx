@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
+const apiUrl = import.meta.env.API_URL;
 
 const Dealerships = () => {
   const [dealerships, setDealerships] = useState([]);
@@ -55,7 +56,7 @@ const Dealerships = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/v1/dealerships?page=${currentPage}&limit=${itemsPerPage}`
+        `${apiUrl}dealerships?page=${currentPage}&limit=${itemsPerPage}`
       );
       setDealerships(response.data.data);
       setTotalPages(response.data.pagination.totalPages);
@@ -217,7 +218,7 @@ const Dealerships = () => {
     if (id) {
       toast.loading("Deleting dealership...", { id: "deleteDealer" });
       try {
-        await axios.delete(`http://localhost:5000/api/v1/dealerships/${id}`);
+        await axios.delete(`${apiUrl}dealerships/${id}`);
         toast.success("Dealership deleted successfully!", {
           id: "deleteDealer",
         });
@@ -275,7 +276,7 @@ const Dealerships = () => {
 
       if (editingDealership) {
         await axios.put(
-          `http://localhost:5000/api/v1/dealerships/${editingDealership._id}`,
+          `${apiUrl}dealerships/${editingDealership._id}`,
           dataToSend,
           config
         );
@@ -284,7 +285,7 @@ const Dealerships = () => {
         });
       } else {
         await axios.post(
-          "http://localhost:5000/api/v1/dealerships",
+          `${apiUrl}dealerships`,
           dataToSend,
           config
         );
