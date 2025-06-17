@@ -1,63 +1,221 @@
-import { useState } from 'react';
-import Layout from '../components/layout/Layout';
-import Table from '../components/ui/Table';
-import Modal from '../components/ui/Modal';
-import { mockBusinesses } from '../data/mockData';
-import { Plus, Edit, Trash2, Eye, Phone, Mail, Globe } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import Layout from "../components/layout/Layout";
+import Table from "../components/ui/Table";
+import Modal from "../components/ui/Modal";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Phone,
+  Mail,
+  Globe,
+  Loader,
+} from "lucide-react"; // Added Loader icon
+import toast from "react-hot-toast";
+import axios from "axios"; // Import axios
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const AutoBusinesses = () => {
-  const [businesses, setBusinesses] = useState(mockBusinesses);
+  const [businesses, setBusinesses] = useState([]); // Initialize as empty, will be fetched
+  const [loading, setLoading] = useState(true); // Initial loading state for fetching data
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
   const [editingBusiness, setEditingBusiness] = useState(null);
   const [viewingBusiness, setViewingBusiness] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    type: '',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-    hours: '',
-    services: ''
+    name: "",
+    type: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+    hours: "", // This will map to 'hoursServices' in the backend
+    services: "", // This will be a comma-separated string for input, then converted to array
   });
 
   const businessTypes = [
-    'Car Wash',
-    'Parts Store',
-    'Repair Shop',
-    'Oil Change',
-    'Tire Shop',
-    'Body Shop',
-    'Towing Service',
-    'Insurance',
-    'Financing',
-    'Other'
+    "Service Center", // Updated based on schema enum
+    "Repair Shop", // Updated based on schema enum
+    "Detailing", // Updated based on schema enum
+    "Car Wash",
+    "Parts Store",
+    "Oil Change",
+    "Tire Shop",
+    "Body Shop",
+    "Towing Service",
+    "Insurance",
+    "Financing",
+    "Other",
   ];
+
+  const fetchBusinesses = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}businesses`);
+      setBusinesses(response.data.data); // Assuming API returns { data: [...] }
+     
+    } catch (error) {
+      console.error("Error fetching businesses:", error);
+      toast.error("Failed to load businesses.");
+      setBusinesses([]); // Clear businesses on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect to fetch businesses on component mount
+  useEffect(() => {
+    fetchBusinesses();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // --- CRUD Operations ---
+
+  const handleAdd = () => {
+    setEditingBusiness(null);
+    setFormData({
+      name: "",
+      type: "",
+      address: "",
+      phone: "",
+      email: "",
+      website: "",
+      hours: "",
+      services: "",
+      description: "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (business) => {
+    setEditingBusiness(business);
+    setFormData({
+      name: business.name,
+      type: business.type,
+      address: business.address,
+      phone: business.phone,
+      email: business.email,
+      description: business.description,
+      website: business.website || "", // Handle potential null/undefined website
+      hours: business.hoursServices ? business.hoursServices.join(", ") : "", // Map hoursServices array to string
+      services: business.services ? business.services.join(", ") : "", // Map services array to string
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this business?")) {
+      // Optimistic UI update (optional, but good for responsiveness)
+      const originalBusinesses = businesses;
+      setBusinesses(businesses.filter((business) => business._id !== id)); // Use _id from MongoDB
+
+      try {
+        await axios.delete(`${API_BASE_URL}businesses/${id}`);
+        toast.success("Business deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting business:", error);
+        toast.error("Failed to delete business.");
+        setBusinesses(originalBusinesses); // Revert on error
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const businessData = {
+      name: formData.name,
+      type: formData.type,
+      address: formData.address,
+      phone: formData.phone,
+      email: formData.email,
+      description: formData.description,
+      website: formData.website,
+      // Convert comma-separated string to array for backend
+      hoursServices: formData.hours
+        .split(",")
+        .map((h) => h.trim())
+        .filter((h) => h),
+      services: formData.services
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s),
+    };
+
+    try {
+      if (editingBusiness) {
+        // Update existing business
+        const response = await axios.put(
+          `${API_BASE_URL}businesses/${editingBusiness._id}`,
+          businessData
+        );
+        setBusinesses(
+          businesses.map(
+            (business) =>
+              business._id === editingBusiness._id
+                ? response.data.data
+                : business // Update with server response
+          )
+        );
+        toast.success("Business updated successfully!");
+      } else {
+        // Add new business
+        const response = await axios.post(
+          `${API_BASE_URL}businesses`,
+          businessData
+        );
+        setBusinesses([...businesses, response.data.data]); // Add new business from server response
+        toast.success("Business added successfully!");
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error(
+        "Error submitting business:",
+        error.response ? error.response.data : error.message
+      );
+      // Display specific error message from backend if available
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to save business. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // --- Table Column Definitions ---
 
   const columns = [
     {
-      header: 'Business',
-      accessor: 'name',
+      header: "Business",
+      accessor: "name",
       cell: (row) => (
         <div>
           <div className="font-medium text-gray-900">{row.name}</div>
           <div className="text-sm text-gray-500">{row.address}</div>
         </div>
-      )
+      ),
     },
     {
-      header: 'Type',
-      accessor: 'type',
+      header: "Type",
+      accessor: "type",
       cell: (row) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
           {row.type}
         </span>
-      )
+      ),
     },
     {
-      header: 'Contact',
-      accessor: 'phone',
+      header: "Contact",
+      accessor: "phone",
       cell: (row) => (
         <div className="text-sm">
           <div className="flex items-center text-gray-900">
@@ -69,32 +227,33 @@ const AutoBusinesses = () => {
             {row.email}
           </div>
         </div>
-      )
+      ),
     },
     {
-      header: 'Services',
-      accessor: 'services',
+      header: "Services",
+      accessor: "services", // Note: This will now be `row.services` directly from DB
       cell: (row) => (
         <div className="flex flex-wrap gap-1">
-          {row.services.slice(0, 2).map((service, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-            >
-              {service}
-            </span>
-          ))}
-          {row.services.length > 2 && (
+          {row.services &&
+            row.services.slice(0, 2).map((service, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              >
+                {service}
+              </span>
+            ))}
+          {row.services && row.services.length > 2 && (
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
               +{row.services.length - 2}
             </span>
           )}
         </div>
-      )
+      ),
     },
     {
-      header: 'Actions',
-      accessor: 'id',
+      header: "Actions",
+      accessor: "_id", // Use _id for MongoDB documents
       cell: (row) => (
         <div className="flex items-center space-x-2">
           <button
@@ -110,115 +269,62 @@ const AutoBusinesses = () => {
             <Edit className="w-4 h-4" />
           </button>
           <button
-            onClick={() => handleDelete(row.id)}
+            onClick={() => handleDelete(row._id)} // Pass _id for deletion
             className="text-red-600 hover:text-red-900"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
-      )
-    }
+      ),
+    },
   ];
-
-  const handleAdd = () => {
-    setEditingBusiness(null);
-    setFormData({
-      name: '',
-      type: '',
-      address: '',
-      phone: '',
-      email: '',
-      website: '',
-      hours: '',
-      services: ''
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (business) => {
-    setEditingBusiness(business);
-    setFormData({
-      name: business.name,
-      type: business.type,
-      address: business.address,
-      phone: business.phone,
-      email: business.email,
-      website: business.website,
-      hours: business.hours,
-      services: business.services.join(', ')
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this business?')) {
-      setBusinesses(businesses.filter(business => business.id !== id));
-      toast.success('Business deleted successfully');
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    const businessData = {
-      ...formData,
-      services: formData.services.split(',').map(s => s.trim()).filter(s => s)
-    };
-
-    if (editingBusiness) {
-      setBusinesses(businesses.map(business => 
-        business.id === editingBusiness.id 
-          ? { ...business, ...businessData }
-          : business
-      ));
-      toast.success('Business updated successfully');
-    } else {
-      const newBusiness = {
-        id: Math.max(...businesses.map(b => b.id)) + 1,
-        ...businessData
-      };
-      setBusinesses([...businesses, newBusiness]);
-      toast.success('Business added successfully');
-    }
-    
-    setIsModalOpen(false);
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
 
   return (
     <Layout title="Auto Businesses">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Auto Businesses</h2>
-            <p className="text-gray-600">Directory of automotive businesses on Nellis Boulevard</p>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Auto Businesses
+            </h2>
+            <p className="text-gray-600">
+              Directory of automotive businesses on Nellis Boulevard
+            </p>
           </div>
           <button
             onClick={handleAdd}
             className="btn-primary flex items-center"
+            disabled={loading} // Disable add button while initial data is loading
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Business
           </button>
         </div>
 
-        <Table
-          columns={columns}
-          data={businesses}
-          searchPlaceholder="Search businesses..."
-        />
+        {/* Display loading, no data, or table */}
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <Loader className="w-10 h-10 animate-spin text-primary-500" />
+          </div>
+        ) : businesses.length > 0 ? (
+          <Table
+            columns={columns}
+            data={businesses}
+            searchPlaceholder="Search businesses..."
+          />
+        ) : (
+          <div className="flex justify-center items-center h-48">
+            <h1 className="text-center font-semibold text-gray-700">
+              No data available. Add new Business +{" "}
+            </h1>
+          </div>
+        )}
 
         {/* Add/Edit Modal */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={editingBusiness ? 'Edit Auto Business' : 'Add Auto Business'}
+          title={editingBusiness ? "Edit Auto Business" : "Add Auto Business"}
           size="lg"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -245,7 +351,9 @@ const AutoBusinesses = () => {
                 >
                   <option value="">Select type</option>
                   {businessTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -257,6 +365,17 @@ const AutoBusinesses = () => {
                 type="text"
                 name="address"
                 value={formData.address}
+                onChange={handleChange}
+                className="form-input"
+                required
+              />
+            </div>
+            <div>
+              <label className="form-label">Description</label>
+              <input
+                type="text"
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -301,7 +420,7 @@ const AutoBusinesses = () => {
             </div>
 
             <div>
-              <label className="form-label">Hours</label>
+              <label className="form-label">Hours (comma-separated)</label>
               <input
                 type="text"
                 name="hours"
@@ -331,11 +450,23 @@ const AutoBusinesses = () => {
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="btn-secondary"
+                disabled={isSubmitting} // Disable cancel button during submission
               >
                 Cancel
               </button>
-              <button type="submit" className="btn-primary">
-                {editingBusiness ? 'Update' : 'Add'} Business
+              <button
+                type="submit"
+                className="btn-primary flex items-center justify-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader className="w-4 h-4 animate-spin mr-2" />
+                ) : editingBusiness ? (
+                  "Update"
+                ) : (
+                  "Add"
+                )}{" "}
+                Business
               </button>
             </div>
           </form>
@@ -361,7 +492,9 @@ const AutoBusinesses = () => {
 
               <div className="space-y-4">
                 <div>
-                  <span className="text-sm font-medium text-gray-500">Address</span>
+                  <span className="text-sm font-medium text-gray-500">
+                    Address
+                  </span>
                   <p className="text-gray-900">{viewingBusiness.address}</p>
                 </div>
 
@@ -391,22 +524,31 @@ const AutoBusinesses = () => {
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Business Hours</h4>
-                    <p className="text-gray-600">{viewingBusiness.hours}</p>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Business Hours
+                    </h4>
+                    {/* Display hoursServices from backend which is an array */}
+                    <div className="text-gray-600">
+                      {viewingBusiness.hoursServices &&
+                        viewingBusiness.hoursServices.map((hour, index) => (
+                          <p key={index}>{hour}</p>
+                        ))}
+                    </div>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Services</h4>
                   <div className="flex flex-wrap gap-2">
-                    {viewingBusiness.services.map((service, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
-                      >
-                        {service}
-                      </span>
-                    ))}
+                    {viewingBusiness.services &&
+                      viewingBusiness.services.map((service, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
+                        >
+                          {service}
+                        </span>
+                      ))}
                   </div>
                 </div>
               </div>
