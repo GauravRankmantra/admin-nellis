@@ -304,7 +304,7 @@ const AutoBusinesses = () => {
         {/* Display loading, no data, or table */}
         {loading ? (
           <div className="flex justify-center items-center h-48">
-            <Loader className="w-10 h-10 animate-spin text-primary-500" />
+            <Loader className="w-10  animate-spin" />
           </div>
         ) : businesses.length > 0 ? (
           <Table

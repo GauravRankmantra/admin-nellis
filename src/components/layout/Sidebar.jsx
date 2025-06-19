@@ -12,7 +12,8 @@ import {
   Building,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Cog
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -27,7 +28,8 @@ const Sidebar = () => {
     { name: 'Special Offers', path: '/admin/offers', icon: Gift },
     { name: 'Dealerships', path: '/admin/dealerships', icon: Building },
     { name: 'Auto Businesses', path: '/admin/businesses', icon: Store },
-    { name: 'Service & Parts', path: '/admin/service', icon: Wrench },
+    { name: 'Service', path: '/admin/service', icon: Wrench },
+       { name: 'Parts', path: '/admin/parts', icon: Cog },
     { name: 'Community Blog', path: '/admin/blog', icon: FileText },
     { name: 'Contact Submissions', path: '/admin/contacts', icon: Mail },
   ];

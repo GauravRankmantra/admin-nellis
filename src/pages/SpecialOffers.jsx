@@ -284,7 +284,7 @@ const SpecialOffers = () => {
         {loading ? (
           // Show a loader when data is being fetched
           <div className="flex justify-center items-center h-48">
-            <Loader className="w-10 h-10 animate-spin text-blue-500" />
+            <Loader className="w-10 animate-spin" />
           </div>
         ) : offers && offers.length > 0 ? (
         
