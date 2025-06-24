@@ -400,21 +400,21 @@ const WeeklySpecials = () => {
                 onChange={handleDealershipSelectChange}
                 className="form-input"
                 required
-                disabled={!allDealerships.length && !isLoading} // Disable if no dealerships loaded
+                disabled={!allDealerships?.length && !isLoading} // Disable if no dealerships loaded
               >
                 <option value="">-- Select a Dealership --</option>
-                {allDealerships.map((dealership) => (
+                {allDealerships?.map((dealership) => (
                   <option key={dealership._id} value={dealership._id}>
                     {dealership.name}
                   </option>
                 ))}
               </select>
-              {!allDealerships.length && isLoading && (
+              {!allDealerships?.length && isLoading && (
                 <p className="text-sm text-gray-500 mt-1">
                   Loading dealerships...
                 </p>
               )}
-              {!allDealerships.length && !isLoading && (
+              {!allDealerships?.length && !isLoading && (
                 <p className="text-sm text-red-500 mt-1">
                   No dealerships available. Please add some first.
                 </p>

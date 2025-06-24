@@ -23,9 +23,9 @@ const Table = ({
     );
   }, [data, searchTerm]);
 
-  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const totalPages = Math.ceil(filteredData?.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+  const paginatedData = filteredData?.slice(startIndex, startIndex + pageSize);
   console.log("pagination data ", paginatedData);
   console.log("columns data ", columns);
 
@@ -68,7 +68,7 @@ const Table = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((row, rowIndex) => (
+            {paginatedData?.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
                 {columns.map((column, colIndex) => (
                   <td

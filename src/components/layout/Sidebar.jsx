@@ -1,37 +1,37 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  Home, 
-  Car, 
-  Store, 
-  Wrench, 
-  FileText, 
-  Mail, 
-  Gift, 
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import {
+  Home,
+  Car,
+  Store,
+  Wrench,
+  FileText,
+  Mail,
+  Gift,
   Video,
   Building,
   Menu,
   X,
   LogOut,
-  Cog
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+  Cog,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { logout } = useAuth();
 
   const navigationItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
-    { name: 'Weekly Specials', path: '/admin/specials', icon: Video },
-    { name: 'Inventory', path: '/admin/inventory', icon: Car },
-    { name: 'Special Offers', path: '/admin/offers', icon: Gift },
-    { name: 'Dealerships', path: '/admin/dealerships', icon: Building },
-    { name: 'Auto Businesses', path: '/admin/businesses', icon: Store },
-    { name: 'Service', path: '/admin/service', icon: Wrench },
-       { name: 'Parts', path: '/admin/parts', icon: Cog },
-    { name: 'Community Blog', path: '/admin/blog', icon: FileText },
-    { name: 'Contact Submissions', path: '/admin/contacts', icon: Mail },
+    { name: "Dashboard", path: "/admin/dashboard", icon: Home },
+    { name: "Weekly Specials", path: "/admin/specials", icon: Video },
+    { name: "Inventory", path: "/admin/inventory", icon: Car },
+    { name: "Special Offers", path: "/admin/offers", icon: Gift },
+    { name: "Dealerships", path: "/admin/dealerships", icon: Building },
+    { name: "Auto Businesses", path: "/admin/businesses", icon: Store },
+    { name: "Service", path: "/admin/service", icon: Wrench },
+    { name: "Parts", path: "/admin/parts", icon: Cog },
+    { name: "Community Blog", path: "/admin/blog", icon: FileText },
+    { name: "Contact Submissions", path: "/admin/contacts", icon: Mail },
   ];
 
   const NavItem = ({ item, mobile = false }) => {
@@ -42,9 +42,9 @@ const Sidebar = () => {
         className={({ isActive }) =>
           `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
             isActive
-              ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-700'
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-          } ${mobile ? 'mb-2' : ''}`
+              ? "bg-primary-100 text-primary-700 border-r-2 border-primary-700"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          } ${mobile ? "mb-2" : ""}`
         }
         onClick={() => mobile && setIsOpen(false)}
       >
@@ -78,7 +78,9 @@ const Sidebar = () => {
           <div className="flex items-center flex-shrink-0 px-4 mb-8">
             <div className="flex items-center">
               <Car className="w-8 h-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Nellis Auto Admin</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">
+                Nellis Auto Admin
+              </span>
             </div>
           </div>
           <nav className="flex-1 px-4 space-y-1">
@@ -101,14 +103,16 @@ const Sidebar = () => {
       {/* Mobile sidebar */}
       <div
         className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col flex-1 pt-16 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4 mb-8">
             <div className="flex items-center">
               <Car className="w-8 h-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Nellis Auto Admin</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">
+                Nellis Auto Admin
+              </span>
             </div>
           </div>
           <nav className="flex-1 px-4">

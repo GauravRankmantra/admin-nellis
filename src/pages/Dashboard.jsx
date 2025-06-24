@@ -11,12 +11,75 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Dashboard = () => {
+
+
+  const [totalCars, setTotalCars] = useState(0);
+  const [totalDealers, setTotalDealers] = useState(0);
+  const [serviceBookings, setServiceBookings] = useState(0);
+  const [monthlyInquiries, setMonthlyInquiries] = useState(0);
+  const [blogPosts, setBlogPosts] = useState(0);
+  const [weeklySpecials, setWeeklySpecials] = useState(0);
+
+  const [loadingStats, setLoadingStats] = useState(true);
+
+
+
+    useEffect(() => {
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        const [
+          carsRes,
+          dealersRes,
+          bookingsRes,
+          inquiriesRes,
+          blogPostsRes,
+          specialsRes,
+        ] = await Promise.all([
+      
+          axios.get(`${API_BASE_URL}vehicles/totalVehical`), 
+          axios.get(`${API_BASE_URL}dealerships/totalDealer`), 
+          axios.get(`${API_BASE_URL}services/totalService`), 
+          axios.get(`${API_BASE_URL}contact/totalContact`), 
+          axios.get(`${API_BASE_URL}posts/totalPosts`), 
+          axios.get(`${API_BASE_URL}weekly-specials/totalWeekly`), 
+        ]);
+
+
+        setTotalCars(carsRes.data.data);
+        setTotalDealers(dealersRes.data.data);
+        setServiceBookings(bookingsRes.data.data);
+        setMonthlyInquiries(inquiriesRes.data.data);
+        setBlogPosts(blogPostsRes.data.data);
+        setWeeklySpecials(specialsRes.data.data);
+
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        toast.error('Failed to load some dashboard statistics.');
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+ 
+
+    fetchStats();
+
+  }, []); 
+
+
+
   const stats = [
     {
       name: "Total Cars",
-      value: mockStats.totalCars,
+      value: totalCars,
       change: "+12%",
       changeType: "positive",
       icon: Car,
@@ -24,7 +87,7 @@ const Dashboard = () => {
     },
     {
       name: "Dealerships",
-      value: mockStats.totalDealers,
+      value: totalDealers,
       change: "+2",
       changeType: "positive",
       icon: Building,
@@ -32,7 +95,7 @@ const Dashboard = () => {
     },
     {
       name: "Service Bookings",
-      value: mockStats.serviceBookings,
+      value: serviceBookings,
       change: "+8%",
       changeType: "positive",
       icon: Wrench,
@@ -40,7 +103,7 @@ const Dashboard = () => {
     },
     {
       name: "Monthly Inquiries",
-      value: mockStats.monthlyInquiries,
+      value: monthlyInquiries,
       change: "+15%",
       changeType: "positive",
       icon: Mail,
@@ -48,7 +111,7 @@ const Dashboard = () => {
     },
     {
       name: "Blog Posts",
-      value: mockStats.blogPosts,
+      value: blogPosts,
       change: "+3",
       changeType: "positive",
       icon: FileText,
@@ -56,7 +119,7 @@ const Dashboard = () => {
     },
     {
       name: "Weekly Specials",
-      value: mockStats.weeklySpecials,
+      value: weeklySpecials,
       change: "+2",
       changeType: "positive",
       icon: Video,
